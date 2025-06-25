@@ -53,8 +53,6 @@ function App() {
   useEffect(() => {
     const fetchInitialData = async () => {
       setLoading(true)
-      setItems([])
-      listRef.current?.resetScroll();
       try {
         if (debouncedSearch) {
           // Fetch based on search term
@@ -68,6 +66,8 @@ function App() {
           setTotal(initialTotal)
           setSelectedIds(new Set(serverSelectedIds))
         }
+        // Reset scroll after new items are loaded and set
+        listRef.current?.resetScroll();
       } catch (error) {
         console.error('Failed to fetch initial data:', error)
       } finally {
