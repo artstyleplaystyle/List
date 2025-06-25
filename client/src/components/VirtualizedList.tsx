@@ -1,4 +1,4 @@
-import { useRef } from 'react';
+import { useRef, forwardRef, useImperativeHandle } from 'react';
 import { FixedSizeList as List } from 'react-window';
 import { useDrag, useDrop } from 'react-dnd';
 import type { Identifier } from 'dnd-core';
@@ -81,8 +81,16 @@ const Row = ({ index, style, data }: RowProps) => {
   );
 };
 
-export const VirtualizedList = ({ items, total, loading, loadMoreItems, selectedIds, onSelectionChange, moveItem }: VirtualizedListProps) => {
-  const itemCount = items.length < total ? items.length + 1 : items.length;
+export const VirtualizedList = forwardRef(({ items, total, loading, loadMoreItems, selectedIds, onSelectionChange, moveItem }: VirtualizedListProps, ref) => {
+  const listRef = useRef<List>(null);
+  const currentItems = items || [];
+  const itemCount = currentItems.length < total ? currentItems.length + 1 : currentItems.length;
+
+  useImperativeHandle(ref, () => ({
+    resetScroll: () => {
+      listRef.current?.scrollToItem(0, 'start');
+    }
+  }));
 
   const loadMore = () => {
     if (!loading) {
@@ -92,13 +100,14 @@ export const VirtualizedList = ({ items, total, loading, loadMoreItems, selected
 
   return (
     <List
+      ref={listRef}
       height={600}
       itemCount={itemCount}
       itemSize={45}
       width="100%"
-      itemData={{items, selectedIds, onSelectionChange, moveItem}}
+      itemData={{items: currentItems, selectedIds, onSelectionChange, moveItem}}
       onItemsRendered={({ visibleStopIndex }) => {
-        if (visibleStopIndex >= items.length - 5 && items.length < total) {
+        if (visibleStopIndex >= currentItems.length - 5 && currentItems.length < total) {
           loadMore();
         }
       }}
@@ -106,4 +115,4 @@ export const VirtualizedList = ({ items, total, loading, loadMoreItems, selected
       {Row}
     </List>
   );
-}; 
+}); 

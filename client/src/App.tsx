@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { fetchItems, fetchState, updateState } from './api'
 import type { Item } from './api'
 import { VirtualizedList } from './components/VirtualizedList'
@@ -11,6 +11,7 @@ function App() {
   const [search, setSearch] = useState('')
   const [debouncedSearch, setDebouncedSearch] = useState('')
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set())
+  const listRef = useRef<{ resetScroll: () => void }>(null);
 
   const handleSelectionChange = useCallback((itemId: number, isSelected: boolean) => {
     const newSelectedIds = new Set(selectedIds)
@@ -53,6 +54,7 @@ function App() {
     const fetchInitialData = async () => {
       setLoading(true)
       setItems([])
+      listRef.current?.resetScroll();
       try {
         if (debouncedSearch) {
           // Fetch based on search term
@@ -107,6 +109,7 @@ function App() {
       </div>
       <div className="list-container">
         <VirtualizedList
+          ref={listRef}
           items={items}
           total={total}
           loading={loading}
